@@ -28,7 +28,21 @@ export default function Dashboard() {
             if (event.event === 'nuova_rilevazione') {
                 rilevazioni && setRilevazioni(null) 
                 const rilevazione = (event as RilevazioneEvent).payload;
-                setRilevazioni(rilevazione);
+                const optionDate: Intl.DateTimeFormatOptions = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                }
+                const normalData = new Date(rilevazione.data).toLocaleString('it-IT', optionDate);
+                const newObj = {
+                    ...rilevazione,
+                    data: normalData
+                }
+                setRilevazioni(newObj);
                 setRilevazioniLoading(false);
             }
             if (event.event === 'nuova_rilevazione_loading') {
@@ -52,11 +66,11 @@ export default function Dashboard() {
                 </div>
                 <div className="flex flex-col items-center gap-4 justify-between">
                     {rilevazioni && rilevazioni.url_foto && !rilevazioniLoading ? (
-                        <div className="flex-col gap-2 rounded-xl bg-orange-900/30 backdrop-blur-sm relative shadow-lg shadow-amber-900/10 border border-orange-800/30 transition-all duration-300 hover:shadow-xl hover:shadow-amber-900/20">
+                        <div className="flex-col gap-2 rounded-xl bg-orange-900/30 backdrop-blur-sm relative shadow-lg shadow-amber-900/10 border border-orange-800/30 transition-all duration-300 hover:shadow-xl hover:shadow-amber-900/20 w-1/3">
                             <img
                                 src={rilevazioni.url_foto}
                                 alt="Foto camino"
-                                className="h-80 w-full object-cover rounded-t-xl"
+                                className="h-80 w-full  object-cover rounded-t-xl"
                                 onError={(e) => {
                                     console.error('Errore caricamento immagine:', e);
                                 }}
