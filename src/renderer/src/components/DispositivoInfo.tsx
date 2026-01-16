@@ -1,12 +1,12 @@
 import useRilevazioniRealtime from "@renderer/hooks/useRilevazioniRealtime";
-import { AlertCircle, Battery, CheckCircle, PowerOff, Smartphone, X, Zap } from "lucide-react";
+import { AlertCircle, Battery, BatteryIcon, CheckCircle, PowerOff, Smartphone, X, Zap } from "lucide-react";
 import { useState } from "react";
 
 interface EventPercentuale {
     event: string;
     payload: {
         percentuale: number;
-        stato: string;
+        stato: "CHARGING" | "DISCHARGING" | "";
         timestamp: string;
         temperatura_batteria: number;
         rssi: number;
@@ -32,6 +32,7 @@ export default function DispositivoInfo() {
         [{ channelName: 'monitoraggio_telefono', eventName: 'info' }],
         (event: EventPercentuale) => {
             if (event.event === 'info') {
+                
                 setInfoTelefono(event.payload);
                 setDispositivoOnOff(true);
             }
@@ -75,7 +76,7 @@ export default function DispositivoInfo() {
                             </div>
                             <div className="flex flex-col gap-1">
                                 <p className="text-xs text-amber-100/60 font-medium">Stato batteria</p>
-                                <p className="text-amber-50 font-semibold text-sm">{infoTelefono?.stato}</p>
+                                <p className="text-amber-50 font-semibold text-sm">{infoTelefono?.stato === "CHARGING" ? "In carica" : "Non in carica"}</p>
                             </div>
                         </div>
                         <div className="bg-orange-900/20 rounded-lg p-3 border border-orange-800/30">
@@ -85,7 +86,13 @@ export default function DispositivoInfo() {
                                     <p className="text-amber-50 font-medium text-sm">Batteria rimanente</p>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <Zap className="w-4 h-4 text-orange-400 animate-pulse" />
+                                    {
+                                        infoTelefono?.stato === "CHARGING" ? (
+                                            <Zap className="w-4 h-4 text-orange-400 animate-pulse" />
+                                        ) : (
+                                            <BatteryIcon className="w-4 h-4 text-orange-400" />
+                                        )
+                                    }
                                     <p className="text-amber-50 font-semibold text-sm">{infoTelefono?.percentuale}%</p>
                                 </div>
                             </div>
@@ -95,6 +102,14 @@ export default function DispositivoInfo() {
                                     style={{ width: `${infoTelefono?.percentuale}%` }} 
                                 />
                             </div>
+                            {
+                                infoTelefono.percentuale <= 20 && (
+                                    <div className="mt-2 flex items-center justify-center gap-2 p-2 rounded-lg bg-red-500/20 border border-red-500/30">
+                                        <p className="text-red-400 font-medium text-sm">ATTENZIONE: Batteria bassa!</p>
+                                        <AlertCircle className="w-4 h-4 text-red-400 animate-pulse" />
+                                    </div>
+                                )
+                            }
                         </div>
                         <div className="flex justify-center mt-3">
                             <button className="bg-orange-700 hover:bg-orange-600 text-amber-50 px-4 py-2 rounded-lg flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-orange-900/30">
