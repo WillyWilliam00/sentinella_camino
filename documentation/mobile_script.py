@@ -26,7 +26,7 @@ FOTO_FILE_NAME = "sentinella_camino.jpg"
 def scatta_foto():
     print("Scattando foto...")
     # comando per scattare foto con termux, c sta per CAMERA, 0 sta per il numero della camera, FOTO_FILE_NAME sta per il nome del file foto
-    comando = ["termux-camera-photo", "-c", "0", FOTO_FILE_NAME]
+    comando = ["termux-camera-photo", "-c", "4", FOTO_FILE_NAME]
     try:
         subprocess.run(comando, check=True)
         print(f"Foto scattata e salvata come {FOTO_FILE_NAME}")
@@ -57,6 +57,7 @@ def info_telefono():
     except Exception as e:
         print(f"Errore durante la lettura dell'info telefono: {e}")
         return None
+    
     
 
 
