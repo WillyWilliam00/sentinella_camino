@@ -1,4 +1,4 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
@@ -11,6 +11,12 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('electronAPI', {
+      mandaOrdineScatto: () => ipcRenderer.send('avvia-scatto'),
+      mandaCollegaDispositivo: () => ipcRenderer.send('collega-dispositivo'),
+      mandaScollegaDispositivo: () => ipcRenderer.send('scollega-dispositivo')
+  });
+
   } catch (error) {
     console.error(error)
   }
