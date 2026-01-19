@@ -1,6 +1,6 @@
 import useRilevazioniRealtime from "@renderer/hooks/useRilevazioniRealtime";
-import { AlertCircle, Battery, BatteryIcon, CheckCircle, Link2, Link2Off, Smartphone, X, Zap } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, Battery, BatteryIcon, CheckCircle, Link2, Link2Off, Loader2, Smartphone, X, Zap } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import type { Rilevazione } from "./Dashboard";
 interface EventPercentuale {
     event: string;
@@ -41,40 +41,49 @@ function valutaRSSI(rssi: number): { descrizione: string; colore: string } {
     }
 }
 
+// Tipo per lo stato della connessione - più chiaro e type-safe
+type StatoConnessione = 'disconnesso' | 'connessione' | 'connesso';
+
 export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (rilevazione: Rilevazione | null) => void }) {
-    const [infoTelefono, setInfoTelefono] = useState<EventPercentuale["payload"]>({
-        percentuale: 0,
-        stato: "",
-        timestamp: "",
-        temperatura_batteria: 0,
-        rssi: 0,
-        link_speed_mbps: 0
-    });
-    const [dispositivoOnOff, setDispositivoOnOff] = useState<boolean>(false);
+    const [infoTelefono, setInfoTelefono] = useState<EventPercentuale["payload"] | null>(null);
+    // Un unico stato invece di due boolean separati - più chiaro e meno propenso a errori
+    const [statoConnessione, setStatoConnessione] = useState<StatoConnessione>('disconnesso');
+    const notificaMostrata = useRef<boolean>(false);
+
+    useEffect(() => {
+        // Mostra notifica solo se connesso E batteria bassa E notifica non ancora mostrata
+        if (statoConnessione !== 'connesso') return;
+        if (notificaMostrata.current) return;
+        if (infoTelefono?.percentuale && infoTelefono.percentuale <= 20) {
+            window.electronAPI.mostraNotificaTelefonoScarico()
+            notificaMostrata.current = true;
+        }
+    }, [infoTelefono, statoConnessione])
 
     // Sottoscrizione solo al canale necessario: monitoraggio_telefono
     useRilevazioniRealtime(
         [{ channelName: 'monitoraggio_telefono', eventName: 'info' }],
         (event: EventPercentuale) => {
             if (event.event === 'info') {
-                
                 setInfoTelefono(event.payload);
-                setDispositivoOnOff(true);
+                setStatoConnessione('connesso');
             }
         }
     );
 
     const handleCollegaDispositivo = () => {
         console.log('Collegando dispositivo...');
+        setStatoConnessione('connessione');
         window.electronAPI.mandaCollegaDispositivo()
-        setDispositivoOnOff(true);
     }
 
     const handleScollegaDispositivo = () => {
         console.log('Scollegando dispositivo...');
         window.electronAPI.mandaScollegaDispositivo()
-        setDispositivoOnOff(false);
+        setStatoConnessione('disconnesso');
         setRilevazioni(null);
+        setInfoTelefono(null);
+        notificaMostrata.current = false;
     }
 
     return (
@@ -85,12 +94,35 @@ export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (r
                     <h1 className="text-lg font-semibold text-amber-50">Informazioni del dispositivo</h1>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <p className={`${dispositivoOnOff ? 'text-green-400' : 'text-red-400'} font-semibold text-xs`}>{dispositivoOnOff ? "Dispositivo connesso" : "Dispositivo non connesso"}</p>
-                    {dispositivoOnOff ? <CheckCircle className="w-4 h-4 text-green-400" /> : <X className="w-4 h-4 text-red-400" />}
+                    <p className={`${statoConnessione === 'connesso' ? 'text-green-400' : 'text-red-400'} font-semibold text-xs`}>
+                        {statoConnessione === 'connesso' ? "Dispositivo connesso" : "Dispositivo non connesso"}
+                    </p>
+                    {statoConnessione === 'connesso' ? <CheckCircle className="w-4 h-4 text-green-400" /> : <X className="w-4 h-4 text-red-400" />}
                 </div>
             </div>
             <div className="flex flex-col gap-2">
-                {dispositivoOnOff ? (
+                {/* Logica di rendering più chiara: un solo punto di controllo per ogni stato */}
+                {statoConnessione === 'connessione' && (
+                    <div className="flex flex-col items-center justify-center gap-3 py-8">
+                        <p className="text-amber-50 text-center text-lg font-semibold">Connessione in corso...</p>
+                        <Loader2 className="w-10 h-10 text-orange-500/60 animate-spin" />
+                    </div>
+                )}
+
+                {statoConnessione === 'disconnesso' && (
+                    <div className="flex flex-col items-center justify-center gap-3 py-8">
+                        <p className="text-amber-50 text-center text-lg font-semibold">Dispositivo non connesso</p>
+                        <AlertCircle className="w-10 h-10 text-orange-500/60" />
+                        <button 
+                            onClick={handleCollegaDispositivo}
+                            className="bg-orange-700 hover:bg-orange-600 text-amber-50 px-4 py-2 rounded-lg flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer hover:shadow-orange-900/30"
+                        >
+                            Collega dispositivo <Link2 className="w-4 h-4" />
+                        </button>
+                    </div>
+                )}
+
+                {statoConnessione === 'connesso' && infoTelefono && (
                     <>
                         <div className="grid grid-cols-2 gap-3 mb-3">
                             <div className="flex flex-col gap-1">
@@ -103,33 +135,29 @@ export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (r
                             </div>
                             <div className="flex flex-col gap-1">
                                 <p className="text-xs text-amber-100/60 font-medium">Temperatura</p>
-                                <p className="text-amber-50 font-semibold text-sm">{infoTelefono?.temperatura_batteria}°C</p>
+                                <p className="text-amber-50 font-semibold text-sm">{infoTelefono.temperatura_batteria}°C</p>
                             </div>
                             <div className="flex flex-col gap-1">
                                 <p className="text-xs text-amber-100/60 font-medium">RSSI</p>
                                 <div className="flex items-center gap-2">
-                                    <p className="text-amber-50 font-semibold text-sm">{infoTelefono?.rssi} dBm</p>
-                                    {infoTelefono?.rssi !== undefined && (
-                                        <p className={`${valutaRSSI(infoTelefono.rssi).colore} font-semibold text-xs`}>
-                                            ({valutaRSSI(infoTelefono.rssi).descrizione})
-                                        </p>
-                                    )}
+                                    <p className="text-amber-50 font-semibold text-sm">{infoTelefono.rssi} dBm</p>
+                                    <p className={`${valutaRSSI(infoTelefono.rssi).colore} font-semibold text-xs`}>
+                                        ({valutaRSSI(infoTelefono.rssi).descrizione})
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-1">
                                 <p className="text-xs text-amber-100/60 font-medium">Velocità</p>
                                 <div className="flex items-center gap-2">
-                                    <p className="text-amber-50 font-semibold text-sm">{infoTelefono?.link_speed_mbps} Mbps</p>
-                                    {infoTelefono?.link_speed_mbps !== undefined && (
-                                        <p className={`${valutaVelocita(infoTelefono.link_speed_mbps).colore} font-semibold text-xs`}>
-                                            ({valutaVelocita(infoTelefono.link_speed_mbps).descrizione})
-                                        </p>
-                                    )}
+                                    <p className="text-amber-50 font-semibold text-sm">{infoTelefono.link_speed_mbps} Mbps</p>
+                                    <p className={`${valutaVelocita(infoTelefono.link_speed_mbps).colore} font-semibold text-xs`}>
+                                        ({valutaVelocita(infoTelefono.link_speed_mbps).descrizione})
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-1">
                                 <p className="text-xs text-amber-100/60 font-medium">Stato batteria</p>
-                                <p className="text-amber-50 font-semibold text-sm">{infoTelefono?.stato === "CHARGING" ? "In carica" : "Non in carica"}</p>
+                                <p className="text-amber-50 font-semibold text-sm">{infoTelefono.stato === "CHARGING" ? "In carica" : "Non in carica"}</p>
                             </div>
                         </div>
                         <div className="bg-orange-900/20 rounded-lg p-3 border border-orange-800/30">
@@ -139,62 +167,36 @@ export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (r
                                     <p className="text-amber-50 font-medium text-sm">Batteria rimanente</p>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    {
-                                        infoTelefono?.stato === "CHARGING" ? (
-                                            <Zap className="w-4 h-4 text-orange-400 animate-pulse" />
-                                        ) : (
-                                            <BatteryIcon className="w-4 h-4 text-orange-400" />
-                                        )
-                                    }
-                                    <p className="text-amber-50 font-semibold text-sm">{infoTelefono?.percentuale}%</p>
+                                    {infoTelefono.stato === "CHARGING" ? (
+                                        <Zap className="w-4 h-4 text-orange-400 animate-pulse" />
+                                    ) : (
+                                        <BatteryIcon className="w-4 h-4 text-orange-400" />
+                                    )}
+                                    <p className="text-amber-50 font-semibold text-sm">{infoTelefono.percentuale}%</p>
                                 </div>
                             </div>
                             <div className="relative w-full h-2 bg-orange-900/40 rounded-full overflow-hidden">
                                 <div 
                                     className="absolute top-0 left-0 h-full bg-linear-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-1000 ease-out shadow-sm" 
-                                    style={{ width: `${infoTelefono?.percentuale}%` }} 
+                                    style={{ width: `${infoTelefono.percentuale}%` }} 
                                 />
                             </div>
-                            {
-                                infoTelefono.percentuale <= 20 && (
-                                    <div className="mt-2 flex items-center justify-center gap-2 p-2 rounded-lg bg-red-500/20 border border-red-500/30">
-                                        <p className="text-red-400 font-medium text-sm">ATTENZIONE: Batteria bassa!</p>
-                                        <AlertCircle className="w-4 h-4 text-red-400 animate-pulse" />
-                                    </div>
-                                )
-                            }
+                            {infoTelefono.percentuale <= 20 && (
+                                <div className="mt-2 flex items-center justify-center gap-2 p-2 rounded-lg bg-red-500/20 border border-red-500/30">
+                                    <p className="text-red-400 font-medium text-sm">ATTENZIONE: Batteria bassa!</p>
+                                    <AlertCircle className="w-4 h-4 text-red-400 animate-pulse" />
+                                </div>
+                            )}
                         </div>
                         <div className="flex justify-center mt-3">
-                           {
-                            dispositivoOnOff ? (
-                                <button 
-                                    onClick={handleScollegaDispositivo}
-                                    className="bg-orange-700 hover:bg-orange-600 text-amber-50 px-4 py-2 rounded-lg flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer hover:shadow-orange-900/30"
-                                >
-                                    Scollega dispositivo <Link2Off className="w-4 h-4" />
-                                </button>
-                            ) : (
-                                <button 
-                                    onClick={handleCollegaDispositivo}
-                                    className="bg-orange-700 hover:bg-orange-600 text-amber-50 px-4 py-2 rounded-lg flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer hover:shadow-orange-900/30"
-                                >
-                                    Collega dispositivo <Link2 className="w-4 h-4" />
-                                </button>
-                            )
-                           } 
+                            <button 
+                                onClick={handleScollegaDispositivo}
+                                className="bg-orange-700 hover:bg-orange-600 text-amber-50 px-4 py-2 rounded-lg flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer hover:shadow-orange-900/30"
+                            >
+                                Scollega dispositivo <Link2Off className="w-4 h-4" />
+                            </button>
                         </div>
                     </>
-                ) : (
-                    <div className="flex flex-col items-center justify-center gap-3 py-8">
-                        <p className="text-amber-50 text-center text-lg font-semibold">Dispositivo non connesso</p>
-                        <AlertCircle className="w-10 h-10 text-orange-500/60" />
-                        <button 
-                            onClick={handleCollegaDispositivo}
-                            className="bg-orange-700 hover:bg-orange-600 text-amber-50 px-4 py-2 rounded-lg flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer hover:shadow-orange-900/30"
-                        >
-                            Collega dispositivo <Link2 className="w-4 h-4" />
-                        </button>
-                    </div>
                 )}
             </div>
         </div>
