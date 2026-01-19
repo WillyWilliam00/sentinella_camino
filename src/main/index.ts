@@ -1,6 +1,11 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { Client } from 'ssh2'
+import dotenv from 'dotenv'
+
+// Carica le variabili d'ambiente dal file .env
+dotenv.config()
 
 
 function createWindow(): void {
@@ -34,7 +39,93 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+function scattaFotoSSH() {
+  const conn = new Client()
+  
+  conn.on('ready', () => {
+    console.log('Connesso al server SSH')
+    conn.exec('python ~/test_foto.py', (err, stream) => {
+      if(err) {
+        console.error('Errore durante l\'esecuzione del comando:', err)
+        conn.end()
+        return
+      }
+      stream.on('close', () => {
+        console.log('Comando eseguito, connessione chiusa')
+        conn.end()
+      })
+    })
+  })
 
+  conn.on('error', (err) => {
+    console.error('Errore di connessione SSH:', err)
+  })
+
+  conn.connect({
+    host: process.env.HOST_SSH || '',
+    port: parseInt(process.env.PORT_SSH || '22', 10),
+    username: process.env.USERNAME_SSH || '',
+    password: process.env.PASSWORD_SSH || ''
+  })
+}
+function collegaDispositivoSSH() {
+  const conn = new Client()
+  
+  conn.on('ready', () => {
+    console.log('Connesso al server SSH')
+    conn.exec('termux-wake-lock && python ~/mobile_script.py', (err, stream) => {
+      if(err) {
+        console.error('Errore durante l\'esecuzione del comando:', err)
+        conn.end()
+        return
+      }
+      stream.on('close', () => {
+        console.log('Comando eseguito, connessione chiusa')
+        conn.end()
+      })
+    })
+  })
+
+  conn.on('error', (err) => {
+    console.error('Errore di connessione SSH:', err)
+  })
+
+  conn.connect({
+    host: process.env.HOST_SSH || '',
+    port: parseInt(process.env.PORT_SSH || '22', 10),
+    username: process.env.USERNAME_SSH || '',
+    password: process.env.PASSWORD_SSH || ''
+  })
+}
+function scollegaDispositivoSSH() {
+  const conn = new Client()
+  
+  conn.on('ready', () => {
+    console.log('Connesso al server SSH!!')
+    conn.exec('termux-wake-unlock && pkill python', (err, stream) => {
+      if(err) { 
+        console.error('Errore durante l\'esecuzione del comando:', err)
+        conn.end()
+        return
+      }
+      stream.on('close', () => {
+        console.log('Comando eseguito, connessione chiusa')
+        conn.end()
+      })
+    })
+  })
+
+  conn.on('error', (err) => {
+    console.error('Errore di connessione SSH:', err)
+  })
+
+  conn.connect({
+    host: process.env.HOST_SSH || '',
+    port: parseInt(process.env.PORT_SSH || '22', 10),
+    username: process.env.USERNAME_SSH || '',
+    password: process.env.PASSWORD_SSH || ''
+  })
+}
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -49,8 +140,18 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  // Listener per lo scatto foto via SSH
+  ipcMain.on('avvia-scatto', () => {
+    scattaFotoSSH()
+  })
+
+  ipcMain.on('collega-dispositivo', () => {
+    collegaDispositivoSSH()
+  })
+
+  ipcMain.on('scollega-dispositivo', () => {
+    scollegaDispositivoSSH()
+  })
 
   createWindow()
 
