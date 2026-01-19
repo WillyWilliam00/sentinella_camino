@@ -1,21 +1,28 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, nativeImage } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { Client } from 'ssh2'
 import dotenv from 'dotenv'
-
+import { Notification } from 'electron'
 // Carica le variabili d'ambiente dal file .env
 dotenv.config()
 
 
 function createWindow(): void {
+
+  let iconPath: string
+  iconPath = is.dev 
+  ? join(__dirname, '../../build/icon.png')
+  : join(process.resourcesPath, 'build/icon.png')
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     ...(process.platform === 'linux' ? {  } : {}),
+    icon: iconPath,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -126,12 +133,28 @@ function scollegaDispositivoSSH() {
     password: process.env.PASSWORD_SSH || ''
   })
 }
+
+function mostraNotificaTelefonoScarico() {
+  let iconPath: string
+  iconPath = is.dev 
+  ? join(__dirname, '../../build/icon.png')
+  : join(process.resourcesPath, 'build/icon.png')
+  const icon = nativeImage.createFromPath(iconPath) 
+  
+  const notifica = new Notification({
+    title: 'Dispositivo al 20% di batteria',
+    body: 'Il dispositivo è al 20% di batteria, si prega di caricarlo',
+    timeoutType: 'default',
+    icon: icon
+  })
+  notifica.show()
+}
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.camino.monitoraggio')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -151,6 +174,10 @@ app.whenReady().then(() => {
 
   ipcMain.on('scollega-dispositivo', () => {
     scollegaDispositivoSSH()
+  })
+
+  ipcMain.on('mostra-notifica-telefono-scarico', () => {
+    mostraNotificaTelefonoScarico()
   })
 
   createWindow()

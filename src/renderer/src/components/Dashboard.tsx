@@ -18,6 +18,8 @@ export default function Dashboard() {
     const [rilevazioni, setRilevazioni] = useState<Rilevazione | null>(null);
     const [rilevazioniLoading, setRilevazioniLoading] = useState<boolean>(false);
 
+    
+
     // Sottoscrizione solo ai canali necessari: rilevazione e test_foto
     useRilevazioniRealtime(
         [

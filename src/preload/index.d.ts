@@ -8,6 +8,7 @@ declare global {
       mandaOrdineScatto: () => void
       mandaCollegaDispositivo: () => void
       mandaScollegaDispositivo: () => void
+      mostraNotificaTelefonoScarico: () => void
     }
   }
 }

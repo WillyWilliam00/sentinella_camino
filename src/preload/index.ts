@@ -14,7 +14,8 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electronAPI', {
       mandaOrdineScatto: () => ipcRenderer.send('avvia-scatto'),
       mandaCollegaDispositivo: () => ipcRenderer.send('collega-dispositivo'),
-      mandaScollegaDispositivo: () => ipcRenderer.send('scollega-dispositivo')
+      mandaScollegaDispositivo: () => ipcRenderer.send('scollega-dispositivo'),
+      mostraNotificaTelefonoScarico: () => ipcRenderer.send('mostra-notifica-telefono-scarico')
   });
 
   } catch (error) {
