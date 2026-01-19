@@ -3,7 +3,7 @@ import DispositivoInfo from "./DispositivoInfo";
 import { AlertCircle, Flame, Loader2, X } from "lucide-react";
 import useRilevazioniRealtime from "@renderer/hooks/useRilevazioniRealtime";
 
-interface Rilevazione {
+export interface Rilevazione {
     id: string;
     data: string;
     stato: "ACCESO" | "SPENTO";
@@ -64,7 +64,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2 mb-4">
                     <h2 className="text-lg font-semibold text-amber-50">Notifica di rilevamento</h2>
                 </div>
-                <div className="flex flex-col items-center gap-4 justify-between">
+                <div className="flex lg:flex-col  items-center gap-4 justify-between">
                     {rilevazioni && rilevazioni.url_foto && !rilevazioniLoading ? (
                         <div className="flex-col gap-2 rounded-xl bg-orange-900/30 backdrop-blur-sm relative shadow-lg shadow-amber-900/10 border border-orange-800/30 transition-all duration-300 hover:shadow-xl hover:shadow-amber-900/20 w-1/3">
                             <img
@@ -105,7 +105,7 @@ export default function Dashboard() {
                             <AlertCircle className="w-10 h-10 text-orange-500/60" />
                         </div>
                     )}
-                    <DispositivoInfo />
+                    <DispositivoInfo setRilevazioni={setRilevazioni} />
                 </div>
             </div>
         </div>
