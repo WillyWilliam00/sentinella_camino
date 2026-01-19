@@ -64,6 +64,7 @@ export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (r
     useRilevazioniRealtime(
         [{ channelName: 'monitoraggio_telefono', eventName: 'info' }],
         (event: EventPercentuale) => {
+            console.log('Evento ricevuto:', event);
             if (event.event === 'info') {
                 setInfoTelefono(event.payload);
                 setStatoConnessione('connesso');

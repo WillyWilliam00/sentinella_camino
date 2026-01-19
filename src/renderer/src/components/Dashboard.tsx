@@ -46,6 +46,10 @@ export default function Dashboard() {
                 }
                 setRilevazioni(newObj);
                 setRilevazioniLoading(false);
+                if(newObj.stato === "SPENTO") {
+                    console.log("Mostra notifica camino spento");
+                    window.electronAPI.mostraNotificaCaminoSpento();
+                }
             }
             if (event.event === 'nuova_rilevazione_loading') {
                 setRilevazioniLoading(true);
@@ -66,7 +70,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2 mb-4">
                     <h2 className="text-lg font-semibold text-amber-50">Notifica di rilevamento</h2>
                 </div>
-                <div className="flex lg:flex-col  items-center gap-4 justify-between">
+                <div className="flex xl:flex-col  items-center gap-4 justify-between">
                     {rilevazioni && rilevazioni.url_foto && !rilevazioniLoading ? (
                         <div className="flex-col gap-2 rounded-xl bg-orange-900/30 backdrop-blur-sm relative shadow-lg shadow-amber-900/10 border border-orange-800/30 transition-all duration-300 hover:shadow-xl hover:shadow-amber-900/20 w-1/3">
                             <img

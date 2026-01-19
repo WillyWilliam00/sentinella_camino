@@ -15,7 +15,8 @@ if (process.contextIsolated) {
       mandaOrdineScatto: () => ipcRenderer.send('avvia-scatto'),
       mandaCollegaDispositivo: () => ipcRenderer.send('collega-dispositivo'),
       mandaScollegaDispositivo: () => ipcRenderer.send('scollega-dispositivo'),
-      mostraNotificaTelefonoScarico: () => ipcRenderer.send('mostra-notifica-telefono-scarico')
+      mostraNotificaTelefonoScarico: () => ipcRenderer.send('mostra-notifica-telefono-scarico'),
+      mostraNotificaCaminoSpento: () => ipcRenderer.send('mostra-notifica-camino-spento')
   });
 
   } catch (error) {

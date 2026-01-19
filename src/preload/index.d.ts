@@ -9,6 +9,7 @@ declare global {
       mandaCollegaDispositivo: () => void
       mandaScollegaDispositivo: () => void
       mostraNotificaTelefonoScarico: () => void
+      mostraNotificaCaminoSpento: () => void
     }
   }
 }

@@ -17,8 +17,8 @@ function createWindow(): void {
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1200,
+    height: 700,
     show: false,
     autoHideMenuBar: false,
     ...(process.platform === 'linux' ? {  } : {}),
@@ -149,6 +149,21 @@ function mostraNotificaTelefonoScarico() {
   })
   notifica.show()
 }
+function mostraNotificaCaminoSpento() {
+  let iconPath: string
+  iconPath = is.dev 
+  ? join(__dirname, '../../build/icon.png')
+  : join(process.resourcesPath, 'build/icon.png')
+  const icon = nativeImage.createFromPath(iconPath) 
+  
+  const notifica = new Notification({
+    title: 'Camino spento',
+    body: 'Il camino è spento, vai a riaccenderlo!',
+    timeoutType: 'default',
+    icon: icon
+  })
+  notifica.show()
+}
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -178,6 +193,10 @@ app.whenReady().then(() => {
 
   ipcMain.on('mostra-notifica-telefono-scarico', () => {
     mostraNotificaTelefonoScarico()
+  })
+
+  ipcMain.on('mostra-notifica-camino-spento', () => {
+    mostraNotificaCaminoSpento()
   })
 
   createWindow()
