@@ -1,13 +1,21 @@
-import { AlertCircle, Flame, Loader2, X } from "lucide-react";
+import { AlertCircle, Clock, Flame, HourglassIcon, Loader2, X } from "lucide-react";
 import type { Rilevazione } from "./Dashboard";
+import { useEffect, useState } from "react";
+import useTempoNuovaRilevazione from "@renderer/hooks/useTempoNuovaRilevazione";
+
 
 interface RilevazioneCardProps {
-    rilevazione: Rilevazione | null;
+    rilevazione: Rilevazione | null; 
     isLoading: boolean;
     onClose: () => void;
 }
 
 export default function RilevazioneCard({ rilevazione, isLoading, onClose }: RilevazioneCardProps) {
+    
+    const {minutiRimanenti, secondiRimanenti} = useTempoNuovaRilevazione(rilevazione?.timestampOriginale || "")
+
+   
+
     if (rilevazione && rilevazione.url_foto && !isLoading) {
         return (
             <div className="flex-col gap-2 rounded-xl bg-orange-900/30 backdrop-blur-sm relative shadow-lg shadow-amber-900/10 border border-orange-800/30 transition-all duration-300 hover:shadow-xl hover:shadow-amber-900/20 w-1/3">
@@ -37,6 +45,10 @@ export default function RilevazioneCard({ rilevazione, isLoading, onClose }: Ril
                             <Flame className="w-4 h-4 text-orange-400" />
                         </div>
                     )}
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-500/20 border border-orange-500/30 mt-1">
+                    <HourglassIcon className="w-4 h-4 text-amber-50 animate-spin " />
+                    <p className="text-amber-50 font-medium text-sm">{minutiRimanenti}:{secondiRimanenti}</p>
                 </div>
                 <button 
                     className="absolute top-3 right-3 bg-orange-900/70 backdrop-blur-sm p-1.5 rounded-full hover:bg-orange-800/80 transition-all duration-300 cursor-pointer border border-orange-700/50 shadow-md" 

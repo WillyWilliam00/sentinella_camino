@@ -5,10 +5,10 @@ import useRilevazioniRealtime from "@renderer/hooks/useRilevazioniRealtime";
 import RilevazioneCard from "./RilevazioneCard";
 
 export interface Rilevazione {
-    id: string;
     data: string;
     stato: "ACCESO" | "SPENTO";
     url_foto: string;
+    timestampOriginale: string;
 }
 interface RilevazioneEvent {
     event: string;
@@ -29,7 +29,10 @@ export default function Dashboard() {
         ],
         (event: RilevazioneEvent) => {
             if (event.event === 'nuova_rilevazione') {
-                rilevazioni && setRilevazioni(null) 
+                // Azzera lo stato se c'è già una rilevazione per evitare flash della vecchia immagine
+                if (rilevazioni) {
+                    setRilevazioni(null);
+                }
                 const rilevazione = (event as RilevazioneEvent).payload;
                 const optionDate: Intl.DateTimeFormatOptions = {
                     weekday: 'long',
@@ -43,7 +46,8 @@ export default function Dashboard() {
                 const normalData = new Date(rilevazione.data).toLocaleString('it-IT', optionDate);
                 const newObj = {
                     ...rilevazione,
-                    data: normalData
+                    data: normalData,
+                    timestampOriginale: rilevazione.data
                 }
                 setRilevazioni(newObj);
                 setRilevazioniLoading(false);
@@ -51,6 +55,7 @@ export default function Dashboard() {
                     console.log("Mostra notifica camino spento");
                     window.electronAPI.mostraNotificaCaminoSpento();
                 }
+                console.log({event})
             }
             if (event.event === 'nuova_rilevazione_loading') {
                 setRilevazioniLoading(true);
