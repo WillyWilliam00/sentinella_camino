@@ -17,6 +17,11 @@ if (is.dev) {
 }
 let mainWindow: BrowserWindow | null = null
 
+/**
+ * Crea e configura la finestra principale dell'applicazione Electron.
+ * Imposta le dimensioni, l'icona, i webPreferences e carica il contenuto
+ * (URL di sviluppo o file HTML in produzione).
+ */
 function createWindow(): void {
 
   let iconPath: string
@@ -56,6 +61,12 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+
+/**
+ * Esegue una connessione SSH per scattare una foto di test sul dispositivo mobile.
+ * Esegue lo script test_foto.py che scatta una foto immediata e la invia a N8N.
+ * Utilizzato per test manuali dello scatto foto senza attendere il ciclo automatico.
+ */
 function scattaFotoSSH() {
   const conn = new Client()
   
@@ -85,6 +96,13 @@ function scattaFotoSSH() {
     password: process.env.PASSWORD_SSH || ''
   })
 }
+
+/**
+ * Avvia lo script Python principale sul dispositivo mobile tramite SSH.
+ * Esegue mobile_script.py che monitora continuamente il camino scattando foto
+ * ogni 30 minuti e inviando informazioni del dispositivo ogni minuto.
+ * Utilizza termux-wake-lock per mantenere il dispositivo sveglio durante l'esecuzione.
+ */
 function collegaDispositivoSSH() {
   const conn = new Client()
   
@@ -114,6 +132,12 @@ function collegaDispositivoSSH() {
     password: process.env.PASSWORD_SSH || ''
   })
 }
+
+/**
+ * Termina lo script Python in esecuzione e sblocca il dispositivo mobile.
+ * Esegue termux-wake-unlock per sbloccare il dispositivo e pkill python
+ * per terminare tutti i processi Python in esecuzione.
+ */
 function scollegaDispositivoSSH() {
   const conn = new Client()
   
@@ -143,6 +167,12 @@ function scollegaDispositivoSSH() {
     password: process.env.PASSWORD_SSH || ''
   })
 }
+
+/**
+ * Verifica se lo script Python è in esecuzione sul dispositivo mobile.
+ * Esegue il comando 'pgrep python' via SSH e invia il risultato al renderer
+ * tramite IPC. Utilizzato per aggiornare lo stato di connessione nell'interfaccia.
+ */
 function checkPythonRunning() {
   const conn = new Client()
   let isRunning = false
@@ -189,6 +219,11 @@ function mostraNotificaTelefonoScarico() {
   })
   notifica.show()
 }
+
+/**
+ * Mostra una notifica desktop quando il camino viene rilevato come spento
+ * dall'agente AI. La notifica avvisa l'utente di riaccendere il camino.
+ */
 function mostraNotificaCaminoSpento() {
   let iconPath: string
   iconPath = is.dev 
