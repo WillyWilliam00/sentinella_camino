@@ -1,10 +1,10 @@
-import { BrowserRouter, Route, Routes } from "react-router";
+import { HashRouter, Route, Routes } from "react-router";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
 import About from "./components/About";
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
@@ -12,7 +12,7 @@ function App() {
         </Route>
       </Routes>
 
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
