@@ -6,6 +6,38 @@ Sistema di monitoraggio intelligente del camino con rilevamento automatico dello
 
 Sentinella Camino è un'applicazione desktop Electron che monitora in tempo reale lo stato del tuo camino. Il sistema utilizza un dispositivo mobile Android per scattare foto periodiche del camino, che vengono analizzate da un agente AI per determinare se il camino è acceso o spento. L'applicazione fornisce notifiche immediate quando il camino si spegne e monitora anche lo stato del dispositivo mobile (batteria, connessione WiFi).
 
+## 📑 Indice
+
+- [Descrizione](#-descrizione)
+- [Upgrade Futuri](#-upgrade-futuri)
+- [Architettura del Sistema](#-architettura-del-sistema)
+  - [Componenti Principali](#componenti-principali)
+  - [Funzionamento SSH](#funzionamento-ssh)
+- [Tecnologie Utilizzate](#-tecnologie-utilizzate)
+- [Struttura del Progetto](#-struttura-del-progetto)
+- [Configurazione](#️-configurazione)
+  - [File .env](#file-env)
+  - [Script Python Mobile](#script-python-mobile)
+- [Setup e Installazione](#-setup-e-installazione)
+  - [Prerequisiti](#prerequisiti)
+  - [Installazione Dipendenze](#installazione-dipendenze)
+  - [Sviluppo](#sviluppo)
+  - [Build per Produzione](#build-per-produzione)
+  - [Build senza Installer](#build-senza-installer-per-test)
+- [Script Disponibili](#-script-disponibili)
+- [Sicurezza](#-sicurezza)
+- [Documentazione Aggiuntiva](#-documentazione-aggiuntiva)
+- [Contribuire](#-contribuire)
+- [Licenza](#-licenza)
+
+## 🔮 Upgrade Futuri
+
+Miglioramenti pianificati per le prossime versioni:
+
+- **Automazione Docker N8N**: Implementare l'avvio automatico del container Docker con N8N al mount dell'applicazione e lo stop automatico all'unmount, per semplificare la gestione del servizio di automazione
+- **Ottimizzazione Immagini**: Migliorare la compressione e ridurre il peso delle immagini scattate dal dispositivo mobile, per ridurre i tempi di upload e lo spazio di storage utilizzato
+- **Gestione Storage Immagini**: Implementare l'eliminazione automatica delle immagini dal bucket Supabase una volta salvate nello stato, oppure modificare il workflow N8N per utilizzare un nome fisso delle foto (rimuovendo il timestamp) così da sovrascrivere sempre lo stesso file invece di accumulare immagini storiche
+
 ## 🏗️ Architettura del Sistema
 
 Il sistema è composto da diversi componenti che comunicano tra loro:
@@ -203,6 +235,8 @@ Crea una build non installata nella cartella `dist/win-unpacked/` (o equivalente
 - Il file `.env` con credenziali SSH **non è incluso** nel repository
 - Le variabili d'ambiente Supabase sono pubbliche (publishable key) e possono essere incluse nel codice
 - Per distribuzione pubblica, considera alternative più sicure per la gestione delle credenziali SSH
+
+
 
 ## 📚 Documentazione Aggiuntiva
 
