@@ -4,8 +4,17 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { Client } from 'ssh2'
 import dotenv from 'dotenv'
 import { Notification } from 'electron'
+
 // Carica le variabili d'ambiente dal file .env
-dotenv.config()
+if (is.dev) {
+  // In sviluppo: carica dalla root del progetto
+  dotenv.config()
+} else {
+  // In produzione: carica dalla cartella resources
+  const envPath = join(process.resourcesPath, '.env')
+  dotenv.config({ path: envPath })
+  console.log('Caricato .env da:', envPath)
+}
 let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
