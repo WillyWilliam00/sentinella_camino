@@ -1,8 +1,9 @@
 import { useState } from "react";
 import DispositivoInfo from "./DispositivoInfo";
-import { Flame } from "lucide-react";
+import { Flame, HourglassIcon } from "lucide-react";
 import useRilevazioniRealtime from "@renderer/hooks/useRilevazioniRealtime";
 import RilevazioneCard from "./RilevazioneCard";
+import useTempoNuovaRilevazione from "@renderer/hooks/useTempoNuovaRilevazione";
 
 export interface Rilevazione {
     data: string;
@@ -19,7 +20,7 @@ export default function Dashboard() {
     const [rilevazioni, setRilevazioni] = useState<Rilevazione | null>(null);
     const [rilevazioniLoading, setRilevazioniLoading] = useState<boolean>(false);
 
-    
+
 
     // Sottoscrizione solo ai canali necessari: rilevazione e test_foto
     useRilevazioniRealtime(
@@ -51,17 +52,18 @@ export default function Dashboard() {
                 }
                 setRilevazioni(newObj);
                 setRilevazioniLoading(false);
-                if(newObj.stato === "SPENTO") {
+                if (newObj.stato === "SPENTO") {
                     console.log("Mostra notifica camino spento");
                     window.electronAPI.mostraNotificaCaminoSpento();
                 }
-                console.log({event})
+                console.log({ event })
             }
             if (event.event === 'nuova_rilevazione_loading') {
                 setRilevazioniLoading(true);
             }
         }
     );
+    const { minutiRimanenti, secondiRimanenti } = useTempoNuovaRilevazione(rilevazioni?.timestampOriginale || "");
 
     return (
         <div className="flex flex-col gap-4">
@@ -73,8 +75,18 @@ export default function Dashboard() {
                 <p className="text-amber-100/70 font-medium text-sm">Monitorando lo stato del tuo camino...</p>
             </div>
             <div className="bg-orange-950/50  rounded-xl shadow-xl shadow-amber-900/20 p-4 border border-orange-800/50 transition-all duration-300">
-                <div className="flex items-center gap-2 mb-4">
-                    <h2 className="text-lg font-semibold text-amber-50">Notifica di rilevamento</h2>
+                <div className="flex items-center gap-2 justify-between mb-4">
+                    <div className="flex items-center ">
+                        <h2 className="text-lg font-semibold text-amber-50">Notifica di rilevamento</h2>
+                    </div>
+                    {rilevazioni && rilevazioni.timestampOriginale && (
+                    <div className="flex items-center gap-2">
+                        <HourglassIcon className="w-4 h-4 text-amber-50 animate-spin " />
+                        <p className=" text-amber-50 font-medium text-sm">Tempo alla prossima rilevazione</p>  
+                        <p className="text-amber-50 font-medium text-sm">{minutiRimanenti}:{secondiRimanenti}</p>
+                 
+                    </div>
+                    )}
                 </div>
                 <div className="flex xl:flex-col  items-center gap-4 justify-between">
                     <RilevazioneCard

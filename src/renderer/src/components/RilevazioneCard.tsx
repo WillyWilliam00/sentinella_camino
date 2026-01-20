@@ -12,7 +12,7 @@ interface RilevazioneCardProps {
 
 export default function RilevazioneCard({ rilevazione, isLoading, onClose }: RilevazioneCardProps) {
     
-    const {minutiRimanenti, secondiRimanenti} = useTempoNuovaRilevazione(rilevazione?.timestampOriginale || "")
+    
 
    
 
@@ -46,10 +46,7 @@ export default function RilevazioneCard({ rilevazione, isLoading, onClose }: Ril
                         </div>
                     )}
                 </div>
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-500/20 border border-orange-500/30 mt-1">
-                    <HourglassIcon className="w-4 h-4 text-amber-50 animate-spin " />
-                    <p className="text-amber-50 font-medium text-sm">{minutiRimanenti}:{secondiRimanenti}</p>
-                </div>
+                
                 <button 
                     className="absolute top-3 right-3 bg-orange-900/70 backdrop-blur-sm p-1.5 rounded-full hover:bg-orange-800/80 transition-all duration-300 cursor-pointer border border-orange-700/50 shadow-md" 
                     onClick={onClose}
