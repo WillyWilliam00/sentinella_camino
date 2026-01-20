@@ -1,7 +1,5 @@
-import { AlertCircle, Clock, Flame, HourglassIcon, Loader2, X } from "lucide-react";
+import { AlertCircle, Flame, Loader2, X } from "lucide-react";
 import type { Rilevazione } from "./Dashboard";
-import { useEffect, useState } from "react";
-import useTempoNuovaRilevazione from "@renderer/hooks/useTempoNuovaRilevazione";
 
 
 interface RilevazioneCardProps {
