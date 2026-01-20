@@ -48,8 +48,6 @@ export default function useRilevazioniRealtime(
       return;
     }
 
-    console.log('useRilevazioniRealtime: sottoscrizione a', channels.length, 'canali');
-
     // Crea e sottoscrivi a tutti i canali specificati
     channels.forEach(({ channelName, eventName }) => {
       const channel = supabase.channel(channelName, {
@@ -58,17 +56,14 @@ export default function useRilevazioniRealtime(
 
       channel
         .on('broadcast', { event: eventName }, (payload) => {
-          console.log(`Payload da ${channelName}:${eventName}:`, payload);
           if (onEvent) onEvent(payload);
         })
         .subscribe((status, error) => {
-          console.log(`Status canale ${channelName}:`, status);
           if (error) {
             console.error(`Errore canale ${channelName}:`, error);
           }
           if (status === 'SUBSCRIBED') {
             channelsRef.current.set(channelName, channel);
-            console.log(`Sottoscritto a ${channelName}:${eventName}`);
           } else if (status === 'CLOSED') {
             channelsRef.current.delete(channelName);
           }
@@ -77,8 +72,7 @@ export default function useRilevazioniRealtime(
 
     // Cleanup: rimuove tutti i canali quando il componente si smonta o cambiano le dipendenze
     return () => {
-      channelsRef.current.forEach((channel, channelName) => {
-        console.log(`Rimozione canale ${channelName}`);
+      channelsRef.current.forEach((channel) => {
         supabase.removeChannel(channel);
       });
       channelsRef.current.clear();
