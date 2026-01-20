@@ -1,7 +1,8 @@
 import { Outlet } from "react-router";
-import { Camera, Flame, Loader2, RefreshCcw, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Camera, Flame } from "lucide-react";
+import { useState } from "react";
 import useRilevazioniRealtime from "@renderer/hooks/useRilevazioniRealtime";
+import FotoModal from "./FotoModal";
 interface FotoEvent {
     event: string;
     payload: { valore: string };
@@ -58,30 +59,14 @@ export default function Layout() {
             <main className="pt-28 px-10 pb-6">
                 <Outlet />
 
-                {(fotoManuale || fotoManualeLoading) && (
-                    <div className="flex justify-center items-center bg-black/70 backdrop-blur-sm fixed inset-0 z-50">
-                        <div className="bg-orange-950/95 backdrop-blur-md rounded-xl p-6 border border-orange-800/50 w-1/2 h-1/2 relative shadow-2xl shadow-amber-900/30">
-                            <div className="flex justify-center items-center h-full w-full">
-                                {
-                                    fotoManualeLoading && !fotoManuale ? (
-                                        <div className="flex flex-col items-center justify-center gap-6">
-                                            <Loader2 className="w-20 h-20 text-orange-400 animate-spin" />
-                                            <p className="text-amber-50 text-center text-xl font-medium">il tuo dispositivo sta facendo la foto...</p>
-                                        </div>
-                                    ) : (
-                                        <img src={fotoManuale || ''} alt="Foto di prova" className="w-full h-full object-contain rounded-lg" />
-                                    )
-                                }
-                            </div>
-                            <button 
-                                className="absolute top-4 right-4 bg-orange-900/70 backdrop-blur-sm p-2.5 rounded-full hover:bg-orange-800/80 transition-all duration-300 cursor-pointer border border-orange-700/50 shadow-md hover:shadow-lg" 
-                                onClick={() => { setFotoManuale(null); setFotoManualeLoading(false); }}
-                            >
-                                <X className="w-5 h-5 text-amber-50" />
-                            </button>
-                        </div>
-                    </div>
-                )}
+                <FotoModal
+                    foto={fotoManuale}
+                    isLoading={fotoManualeLoading}
+                    onClose={() => {
+                        setFotoManuale(null);
+                        setFotoManualeLoading(false);
+                    }}
+                />
              
             </main>
             <footer></footer>
