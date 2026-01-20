@@ -2,6 +2,7 @@ import useRilevazioniRealtime from "@renderer/hooks/useRilevazioniRealtime";
 import { AlertCircle, Battery, BatteryIcon, CheckCircle, Link2, Link2Off, Loader2, Smartphone, X, Zap } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import type { Rilevazione } from "./Dashboard";
+import usePythonIsRunning from "@renderer/hooks/usePythonIsRunning";
 interface EventPercentuale {
     event: string;
     payload: {
@@ -13,6 +14,7 @@ interface EventPercentuale {
         link_speed_mbps: number;
     };
 }
+type LoadingMode = 'none' | 'connessione' | 'disconnessione' | 'caricamento';
 
 // Funzione per valutare la qualità della velocità WiFi
 function valutaVelocita(mbps: number): { descrizione: string; colore: string } {
@@ -41,24 +43,32 @@ function valutaRSSI(rssi: number): { descrizione: string; colore: string } {
     }
 }
 
-// Tipo per lo stato della connessione - più chiaro e type-safe
-type StatoConnessione = 'disconnesso' | 'connessione' | 'connesso';
 
 export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (rilevazione: Rilevazione | null) => void }) {
     const [infoTelefono, setInfoTelefono] = useState<EventPercentuale["payload"] | null>(null);
+    const [loadingMode, setLoadingMode] = useState<LoadingMode>('none');
     // Un unico stato invece di due boolean separati - più chiaro e meno propenso a errori
-    const [statoConnessione, setStatoConnessione] = useState<StatoConnessione>('disconnesso');
+    const { statoPython, refreshEithRetry } = usePythonIsRunning();
     const notificaMostrata = useRef<boolean>(false);
 
     useEffect(() => {
+        if (statoPython === 'connesso' && !infoTelefono && loadingMode !== 'disconnessione') {
+            setLoadingMode('caricamento');
+        }
+        if (statoPython === 'disconnesso') {
+            setLoadingMode('none');
+        }
+    }, [statoPython, infoTelefono]);
+
+    useEffect(() => {
         // Mostra notifica solo se connesso E batteria bassa E notifica non ancora mostrata
-        if (statoConnessione !== 'connesso') return;
+        if (statoPython !== 'connesso') return;
         if (notificaMostrata.current) return;
         if (infoTelefono?.percentuale && infoTelefono.percentuale <= 20) {
             window.electronAPI.mostraNotificaTelefonoScarico()
             notificaMostrata.current = true;
         }
-    }, [infoTelefono, statoConnessione])
+    }, [infoTelefono, statoPython])
 
     // Sottoscrizione solo al canale necessario: monitoraggio_telefono
     useRilevazioniRealtime(
@@ -67,25 +77,29 @@ export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (r
             console.log('Evento ricevuto:', event);
             if (event.event === 'info') {
                 setInfoTelefono(event.payload);
-                setStatoConnessione('connesso');
+                setLoadingMode('none')
             }
         }
     );
 
     const handleCollegaDispositivo = () => {
-        console.log('Collegando dispositivo...');
-        setStatoConnessione('connessione');
+        console.log('Collegando dispositivo...')
+        setLoadingMode('connessione');
         window.electronAPI.mandaCollegaDispositivo()
+        refreshEithRetry(setLoadingMode, "connessione");
     }
 
     const handleScollegaDispositivo = () => {
         console.log('Scollegando dispositivo...');
+        setLoadingMode('disconnessione');
         window.electronAPI.mandaScollegaDispositivo()
-        setStatoConnessione('disconnesso');
         setRilevazioni(null);
         setInfoTelefono(null);
         notificaMostrata.current = false;
+        refreshEithRetry(setLoadingMode, "disconnessione");
     }
+
+
 
     return (
         <div className="flex-1 rounded-xl shadow-xl shadow-amber-900/20 p-4 bg-orange-950/50 backdrop-blur-sm border border-orange-800/50 w-1/3 transition-all duration-300 hover:shadow-2xl hover:shadow-amber-900/30">
@@ -95,26 +109,32 @@ export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (r
                     <h1 className="text-lg font-semibold text-amber-50">Informazioni del dispositivo</h1>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <p className={`${statoConnessione === 'connesso' ? 'text-green-400' : 'text-red-400'} font-semibold text-xs`}>
-                        {statoConnessione === 'connesso' ? "Dispositivo connesso" : "Dispositivo non connesso"}
+                    <p className={`${statoPython === 'connesso' ? 'text-green-400' : 'text-red-400'} font-semibold text-xs`}>
+                        {statoPython === 'connesso' ? "Dispositivo connesso" : "Dispositivo non connesso"}
                     </p>
-                    {statoConnessione === 'connesso' ? <CheckCircle className="w-4 h-4 text-green-400" /> : <X className="w-4 h-4 text-red-400" />}
+                    {statoPython === 'connesso' ? <CheckCircle className="w-4 h-4 text-green-400" /> : <X className="w-4 h-4 text-red-400" />}
                 </div>
             </div>
             <div className="flex flex-col gap-2">
                 {/* Logica di rendering più chiara: un solo punto di controllo per ogni stato */}
-                {statoConnessione === 'connessione' && (
+                {loadingMode === 'connessione' && (
                     <div className="flex flex-col items-center justify-center gap-3 py-8">
                         <p className="text-amber-50 text-center text-lg font-semibold">Connessione in corso...</p>
                         <Loader2 className="w-10 h-10 text-orange-500/60 animate-spin" />
                     </div>
                 )}
+                {loadingMode === 'disconnessione' && (
+                    <div className="flex flex-col items-center justify-center gap-3 py-8">
+                        <p className="text-amber-50 text-center text-lg font-semibold">Disconnessione in corso...</p>
+                        <Loader2 className="w-10 h-10 text-orange-500/60 animate-spin" />
+                    </div>
+                )}
 
-                {statoConnessione === 'disconnesso' && (
+                {loadingMode === 'none' && statoPython === 'disconnesso' && (
                     <div className="flex flex-col items-center justify-center gap-3 py-8">
                         <p className="text-amber-50 text-center text-lg font-semibold">Dispositivo non connesso</p>
                         <AlertCircle className="w-10 h-10 text-orange-500/60" />
-                        <button 
+                        <button
                             onClick={handleCollegaDispositivo}
                             className="bg-orange-700 hover:bg-orange-600 text-amber-50 px-4 py-2 rounded-lg flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer hover:shadow-orange-900/30"
                         >
@@ -122,8 +142,14 @@ export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (r
                         </button>
                     </div>
                 )}
+                {loadingMode === 'caricamento' &&  (
+                    <div className="flex flex-col items-center justify-center gap-3 py-8">
+                        <p className="text-amber-50 text-center text-lg font-semibold">Caricando informazioni del dispositivo...</p>
+                        <Loader2 className="w-10 h-10 text-orange-500/60 animate-spin" />
+                    </div>
+                )}
 
-                {statoConnessione === 'connesso' && infoTelefono && (
+                {loadingMode === 'none' && statoPython === 'connesso' && infoTelefono && (
                     <>
                         <div className="grid grid-cols-2 gap-3 mb-3">
                             <div className="flex flex-col gap-1">
@@ -177,9 +203,9 @@ export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (r
                                 </div>
                             </div>
                             <div className="relative w-full h-2 bg-orange-900/40 rounded-full overflow-hidden">
-                                <div 
-                                    className="absolute top-0 left-0 h-full bg-linear-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-1000 ease-out shadow-sm" 
-                                    style={{ width: `${infoTelefono.percentuale}%` }} 
+                                <div
+                                    className="absolute top-0 left-0 h-full bg-linear-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-1000 ease-out shadow-sm"
+                                    style={{ width: `${infoTelefono.percentuale}%` }}
                                 />
                             </div>
                             {infoTelefono.percentuale <= 20 && (
@@ -190,7 +216,7 @@ export default function DispositivoInfo({ setRilevazioni }: { setRilevazioni: (r
                             )}
                         </div>
                         <div className="flex justify-center mt-3">
-                            <button 
+                            <button
                                 onClick={handleScollegaDispositivo}
                                 className="bg-orange-700 hover:bg-orange-600 text-amber-50 px-4 py-2 rounded-lg flex items-center gap-2 font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer hover:shadow-orange-900/30"
                             >
