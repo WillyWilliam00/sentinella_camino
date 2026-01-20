@@ -16,7 +16,13 @@ if (process.contextIsolated) {
       mandaCollegaDispositivo: () => ipcRenderer.send('collega-dispositivo'),
       mandaScollegaDispositivo: () => ipcRenderer.send('scollega-dispositivo'),
       mostraNotificaTelefonoScarico: () => ipcRenderer.send('mostra-notifica-telefono-scarico'),
-      mostraNotificaCaminoSpento: () => ipcRenderer.send('mostra-notifica-camino-spento')
+      mostraNotificaCaminoSpento: () => ipcRenderer.send('mostra-notifica-camino-spento'),
+      checkPythonRunning: () => ipcRenderer.send('check-python-running'),
+      onPythonStatus: (callback) => {
+        const listener = (_event, value) => callback(value)
+        ipcRenderer.on('python-running', listener)
+        return () => ipcRenderer.removeListener('python-running', listener)
+      }
   });
 
   } catch (error) {

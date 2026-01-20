@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
-import { Camera, Flame, Loader2, X } from "lucide-react";
-import { useState } from "react";
+import { Camera, Flame, Loader2, RefreshCcw, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import useRilevazioniRealtime from "@renderer/hooks/useRilevazioniRealtime";
 interface FotoEvent {
     event: string;
@@ -12,7 +12,7 @@ export default function Layout() {
     const [tooltip, setTooltip] = useState(false);
     const [fotoManuale, setFotoManuale] = useState<FotoEvent["payload"]["valore"] | null>(null);
     const [fotoManualeLoading, setFotoManualeLoading] = useState(false);
-
+ 
 
     const handleFotoEvent = (payload: FotoEvent) => {
         setFotoManualeLoading(false);
@@ -20,6 +20,10 @@ export default function Layout() {
             setFotoManuale(payload.payload.valore);
         }
     }
+
+
+
+  
 
 
     useRilevazioniRealtime([{ channelName: "test_foto", eventName: "foto" }], handleFotoEvent);
@@ -30,7 +34,9 @@ export default function Layout() {
                     <div className="flex items-center gap-3">
                         <Flame className="w-7 h-7 text-amber-50" />
                         <h1 className="font-semibold text-amber-50 text-lg">Monitoraggio Camino</h1>
+                       
                     </div>
+                    
 
                     <button 
                         className="bg-orange-900/80 hover:bg-orange-800 text-amber-50 px-5 py-2.5 rounded-lg flex items-center gap-2 cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-orange-900/30 border border-orange-800/50" 

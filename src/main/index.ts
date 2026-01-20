@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 import { Notification } from 'electron'
 // Carica le variabili d'ambiente dal file .env
 dotenv.config()
-
+let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
 
@@ -16,7 +16,7 @@ function createWindow(): void {
   : join(process.resourcesPath, 'build/icon.png')
 
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 700,
     show: false,
@@ -30,8 +30,9 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
   })
+  
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
@@ -133,7 +134,37 @@ function scollegaDispositivoSSH() {
     password: process.env.PASSWORD_SSH || ''
   })
 }
-
+function checkPythonRunning() {
+  const conn = new Client()
+  let isRunning = false
+  conn.on('ready', () => {
+    console.log('Connesso al server SSH')
+    conn.exec('pgrep python', (err, stream) => {
+      if (err) {
+        console.error('Errore durante l\'esecuzione del comando:', err)
+        // In caso di errore, consideriamo Python non in esecuzione
+        mainWindow?.webContents?.send('python-running', isRunning)
+        conn.end()
+        return
+      }
+      stream.on('data', (data) => {
+        if (data.toString().trim() !== '') {
+          isRunning = true
+        }
+      })
+      stream.on('close', () => {
+        mainWindow?.webContents?.send('python-running', isRunning)
+        console.log('Comando eseguito, connessione chiusa')
+        conn.end()
+      })
+    })
+  }).connect({
+    host: process.env.HOST_SSH || '',
+    port: parseInt(process.env.PORT_SSH || '22', 10),
+    username: process.env.USERNAME_SSH || '',
+    password: process.env.PASSWORD_SSH || ''
+  })
+}
 function mostraNotificaTelefonoScarico() {
   let iconPath: string
   iconPath = is.dev 
@@ -197,6 +228,9 @@ app.whenReady().then(() => {
 
   ipcMain.on('mostra-notifica-camino-spento', () => {
     mostraNotificaCaminoSpento()
+  })
+  ipcMain.on('check-python-running', () => {
+    checkPythonRunning()
   })
 
   createWindow()

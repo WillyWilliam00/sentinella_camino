@@ -10,6 +10,8 @@ declare global {
       mandaScollegaDispositivo: () => void
       mostraNotificaTelefonoScarico: () => void
       mostraNotificaCaminoSpento: () => void
+      checkPythonRunning: () => void
+      onPythonStatus: (callback: (value: boolean) => void) => () => void
     }
   }
 }
