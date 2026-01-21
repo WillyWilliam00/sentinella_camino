@@ -66,7 +66,7 @@ export default function Dashboard() {
     const { minutiRimanenti, secondiRimanenti } = useTempoNuovaRilevazione(rilevazioni?.timestampOriginale || "");
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 flex-1 ">
             <div className="flex flex-col gap-1.5">
                 <h1 className="text-2xl font-semibold text-amber-50 flex items-center gap-2">
                     <Flame className="w-6 h-6 text-orange-500" />

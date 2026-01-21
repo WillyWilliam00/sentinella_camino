@@ -32,7 +32,7 @@ function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1200,
-    height: 700,
+    height: 900,
     show: false,
     autoHideMenuBar: false,
     ...(process.platform === 'linux' ? {  } : {}),

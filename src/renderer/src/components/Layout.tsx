@@ -31,10 +31,10 @@ export default function Layout() {
 
     useRilevazioniRealtime([{ channelName: "test_foto", eventName: "foto" }], handleFotoEvent);
     return (
-        <div className="w-full min-h-screen relative overflow-hidden">
+        <div className="w-full min-h-screen flex flex-col relative overflow-hidden">
            
             <VideoBackground src="/fire.mp4" />
-            <header className="flex justify-center items-center h-12 w-full bg-linear-to-r from-orange-900 to-amber-900  shadow-xl shadow-amber-900/40 fixed  backdrop-blur-sm border border-orange-800/30">
+            <header className="flex justify-center items-center h-12 w-full bg-linear-to-r from-orange-900 to-amber-900  shadow-xl shadow-amber-900/40 sticky top-0 z-10 backdrop-blur-sm border border-orange-800/30">
                 <div className="flex items-center gap-3 justify-between px-8 w-full">
                     <div className="flex items-center gap-2">
                         <Flame className="w-7 h-7 text-amber-50" />
@@ -63,7 +63,7 @@ export default function Layout() {
                     </div>
                 </div>
             </header>
-            <main className="pt-28 px-10 pb-6">
+            <main className="flex-1 flex px-6 items-center">
                 <Outlet />
 
                 <FotoModal
@@ -77,7 +77,7 @@ export default function Layout() {
                 {
                     popupDocker && (
                         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center">
-                            <X className="w-5 h-5 text-amber-50 absolute top-4 right-4 cursor-pointer" onClick={() => setPopupDocker(false)} />
+                            <X className="w-5 h-5 text-amber-50 absolute top-16 right-4 cursor-pointer" onClick={() => setPopupDocker(false)} />
                             <div className="bg-amber-900/90 rounded-lg p-4 border border-amber-800/50">
                                 <h2 className="text-amber-50 text-sm">Ricordati di avviare n8n per il monitoraggio del tuo camino</h2>
                             </div>
@@ -86,7 +86,15 @@ export default function Layout() {
                 }
 
             </main>
-            <footer></footer>
+            <footer className="flex justify-center items-center gap-2 h-12 w-full bg-linear-to-r from-orange-900 to-amber-900  shadow-xl shadow-amber-900/40 sticky bottom-0 z-10 backdrop-blur-sm border border-orange-800/30">
+                <p className="text-amber-50 text-sm">
+                    Created by 
+                </p>
+                <div className="group">
+                <a href="https://www.linkedin.com/in/william-costa-developer" target="_blank" className=" group-hover:text-amber-100 text-amber-50 transition-all duration-300">William Costa</a>
+                <div className="w-full h-0.5 bg-transparent group-hover:bg-amber-600 transition-all duration-300" />
+                </div>
+            </footer>
         </div>
     )
 }
