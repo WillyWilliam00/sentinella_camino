@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 import { Camera, Flame, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import useRilevazioniRealtime from "@renderer/hooks/useRilevazioniRealtime";
 import FotoModal from "./FotoModal";
 import VideoBackground from "./VideoBackground";
@@ -33,7 +33,8 @@ export default function Layout() {
     return (
         <div className="w-full min-h-screen flex flex-col relative overflow-hidden">
            
-            <VideoBackground src="/fire.mp4" />
+        
+            <VideoBackground src="./fire.mp4" />
             <header className="flex justify-center items-center h-12 w-full bg-linear-to-r from-orange-900 to-amber-900  shadow-xl shadow-amber-900/40 sticky top-0 z-10 backdrop-blur-sm border border-orange-800/30">
                 <div className="flex items-center gap-3 justify-between px-8 w-full">
                     <div className="flex items-center gap-2">

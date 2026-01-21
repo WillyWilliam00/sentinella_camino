@@ -2,6 +2,8 @@
 
 Sistema di monitoraggio intelligente del camino con rilevamento automatico dello stato (acceso/spento) tramite intelligenza artificiale.
 
+![Demo Sentinella Camino](documentation/sentinella_camino.gif)
+
 ## 📋 Descrizione
 
 Sentinella Camino è un'applicazione desktop Electron che monitora in tempo reale lo stato del tuo camino. Il sistema utilizza un dispositivo mobile Android per scattare foto periodiche del camino, che vengono analizzate da un agente AI per determinare se il camino è acceso o spento. L'applicazione fornisce notifiche immediate quando il camino si spegne e monitora anche lo stato del dispositivo mobile (batteria, connessione WiFi).
